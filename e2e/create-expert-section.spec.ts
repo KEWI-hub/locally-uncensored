@@ -1,6 +1,6 @@
 import { test, expect, type Page } from '@playwright/test'
 import { tauriMockInit, DEFAULT_ASSISTANT_REPLY, DEFAULT_MODEL_NAME, type TauriMockOptions } from './support/tauri-mock'
-import { routeCloud, seedOnboardingDone, signInViaGate, cloudSwitch } from './support/cloud-mock'
+import { routeCloud, seedOnboardingDone, appReady } from './support/cloud-mock'
 
 /**
  * Der Expert-Abschnitt in Create, Spur fuer Spur.
@@ -84,56 +84,16 @@ async function openDrawer(page: Page) {
  * (absolute inset-0 z-40) ueber der IntentBar liegt: ein Klick auf eine Spur
  * bei offener Schublade trifft den Scrim, nicht die Spur.
  */
-async function closeDrawer(page: Page) {
-  await drawer(page).getByRole('button', { name: 'Close' }).click()
-  await expect(drawer(page)).toHaveCount(0)
-}
-
-async function bootCreate(page: Page, opts: { signIn: boolean }) {
+async function bootCreate(page: Page) {
   await page.addInitScript(tauriMockInit, WINDOWS_OPTS)
   await seedOnboardingDone(page)
   await routeCloud(page, { license: 'active', access: true, mediaLive: true })
   await page.goto('/')
-  await expect(cloudSwitch(page)).toBeVisible({ timeout: 20_000 })
-  if (opts.signIn) {
-    await signInViaGate(page)
-    await expect(cloudSwitch(page)).toBeChecked({ timeout: 20_000 })
-  }
+  await expect(appReady(page)).toBeVisible({ timeout: 20_000 })
   // Ab der Create-Ansicht ist dieser Name doppelt (der Generieren-Knopf im
   // Composer heisst auch Create), also aus dem Chat heraus und first().
   await page.getByRole('button', { name: /^Create$/ }).first().click()
 }
-
-/**
- * Fall 1, Cloud.
- *
- * Deckt die Haelfte der Meldung ab, in der "nichts da" richtig ist. Auf der
- * Bildspur in der Cloud hat der Abschnitt keinen einzigen Regler, den der
- * hosted Endpunkt annimmt (Sampler, Scheduler, LoRA, VAE, Clip-Skip sind
- * ComfyUI-Wissen), deshalb faellt der ganze Kopf weg statt leer dazustehen.
- * Auf der Edit-Spur bleibt genau ein Regler uebrig, Denoise, und dafuer kommt
- * der Kopf zurueck. Waere der Abschnitt in der Cloud sichtbar und leer, saehe
- * der Melder exakt das, was er gemeldet hat.
- */
-test('cloud: kein Expert-Kopf auf der Bildspur, einer mit genau Denoise auf Edit', async ({ page }) => {
-  await bootCreate(page, { signIn: true })
-  await expect(page.getByRole('radio', { name: 'Image', exact: true })).toBeChecked({ timeout: 15_000 })
-
-  await openDrawer(page)
-  await expect(expertHead(page)).toHaveCount(0)
-
-  await closeDrawer(page)
-  await page.getByRole('radio', { name: 'Edit / Image to Image', exact: true }).click()
-  await openDrawer(page)
-
-  await expect(expertHead(page)).toBeVisible()
-  await expertHead(page).click()
-  await expect(row(page, 'Denoise (raw)')).toBeVisible()
-  // Der Rest des Abschnitts bleibt auch auf Edit weg: die Cloud nimmt ihn
-  // nicht an, und die Maske ist ein ComfyUI-Knopf (allowsMask && !isCloud).
-  await expect(row(page, 'Sampler')).toHaveCount(0)
-  await expect(row(page, 'Mask edge feather')).toHaveCount(0)
-})
 
 /**
  * Fall 2, lokal auf Windows.
@@ -150,7 +110,7 @@ test('cloud: kein Expert-Kopf auf der Bildspur, einer mit genau Denoise auf Edit
  * also ein Fehler und keine fehlende Verbindung.
  */
 test('windows lokal: Expert steht da, ist zu, und traegt nach dem Klick die ComfyUI-Regler', async ({ page }) => {
-  await bootCreate(page, { signIn: false })
+  await bootCreate(page)
   await expect(page.getByRole('radio', { name: 'Image', exact: true })).toBeChecked({ timeout: 15_000 })
 
   await openDrawer(page)
@@ -172,34 +132,3 @@ test('windows lokal: Expert steht da, ist zu, und traegt nach dem Klick die Comf
   await expect(page.getByRole('option', { name: 'dpmpp_2m', exact: true })).toBeVisible()
 })
 
-/**
- * Fall 3, der Weg von der Cloud zurueck.
- *
- * Die wahrscheinlichste Form der Meldung: nicht "der Abschnitt fehlt", sondern
- * "er kam nicht wieder". Wer in der Cloud war, hat den Kopf zu Recht nicht
- * gesehen (Fall 1); wenn er nach dem einen Klick zurueck nach lokal ausbleibt,
- * sieht das von aussen aus wie ein kaputter Abschnitt auf Windows. Gemessen
- * wird deshalb der Uebergang selbst: ein Klick hinaus (zwei braucht nur der
- * Weg hinein, cloud-switch-guard.ts), und danach muss der Abschnitt mit seinem
- * Inhalt dastehen. Der Models-Reiter dient als zweiter, unabhaengiger Zeuge
- * dafuer, dass der Wechsel wirklich durch die ganze Oberflaeche gelaufen ist
- * und nicht nur die Schublade neu gemalt hat.
- */
-test('zurueck aus der Cloud: ein Klick holt den Expert-Abschnitt wieder', async ({ page }) => {
-  await bootCreate(page, { signIn: true })
-
-  await openDrawer(page)
-  await expect(expertHead(page)).toHaveCount(0)
-
-  // Der Schalter sitzt in der Kopfzeile, ausserhalb des Schubladen-Scrims,
-  // also bleibt die Schublade waehrend des Wechsels offen und misst weiter.
-  await cloudSwitch(page).click()
-  await expect(cloudSwitch(page)).not.toBeChecked()
-
-  await expect(expertHead(page)).toBeVisible({ timeout: 20_000 })
-  await expertHead(page).click()
-  await expect(row(page, 'Sampler')).toBeVisible()
-  await expect(row(page, 'Scheduler')).toBeVisible()
-
-  await expect(page.getByRole('button', { name: /^Models$/ })).toBeVisible()
-})

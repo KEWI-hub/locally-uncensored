@@ -1,6 +1,6 @@
 import { test, expect, type Page } from '@playwright/test'
 import { tauriMockInit, DEFAULT_ASSISTANT_REPLY, DEFAULT_MODEL_NAME, type TauriMockOptions } from './support/tauri-mock'
-import { routeCloud, seedOnboardingDone, cloudSwitch } from './support/cloud-mock'
+import { routeCloud, seedOnboardingDone, appReady } from './support/cloud-mock'
 import { mlxCalls, comfyCalls, hfToken, requireCall } from './support/recorded'
 
 /**
@@ -33,7 +33,7 @@ test('mac model install reports the missing snapshot component without claiming 
   await seedOnboardingDone(page)
   await routeCloud(page, { license: 'active', access: true, mediaLive: true })
   await page.goto('/')
-  await expect(cloudSwitch(page)).toBeVisible({ timeout: 20_000 })
+  await expect(appReady(page)).toBeVisible({ timeout: 20_000 })
   await page.getByRole('button', { name: /^Settings$/ }).click()
   await page.getByRole('button', { name: /AI Backends/i }).click()
   await page.getByRole('button', { name: /Local Media \(Apple MLX\)/i }).click()
@@ -50,27 +50,20 @@ async function bootLocalCreate(page: Page, opts: TauriMockOptions) {
   await seedOnboardingDone(page)
   await routeCloud(page, { license: 'active', access: true, mediaLive: true })
   await page.goto('/')
-  await expect(cloudSwitch(page)).toBeVisible({ timeout: 20_000 })
+  await expect(appReady(page)).toBeVisible({ timeout: 20_000 })
   await page.getByRole('button', { name: /^Create$/ }).click()
 }
 
-test('mac local: MLX lanes run locally, cloud-only lanes stay visible as teasers', async ({ page }) => {
+test('mac local: MLX lanes run locally, cloud-only lanes are hidden', async ({ page }) => {
   await bootLocalCreate(page, MAC_OPTS)
 
   // The two lanes MLX genuinely serves are plain, selectable radios.
   await expect(page.getByRole('radio', { name: 'Image', exact: true })).toBeVisible({ timeout: 15_000 })
   await expect(page.getByRole('radio', { name: 'Video', exact: true })).toBeVisible()
 
-  // Everything hosted-only keeps its place in the bar as a locked teaser —
-  // David's rule: what can't run locally is still shown, not deleted.
-  // R5-67 renamed the upscale label to "Enhance Image" (parity with web).
-  for (const label of ['Enhance Image', 'Erase Object', 'Character Studio', 'Talking Character', 'Music', 'Extend Video', 'Motion Control']) {
-    await expect(page.getByRole('radio', { name: `${label}, runs on LU Cloud` })).toBeVisible()
-  }
-
-  // A locked lane opens the teaser instead of switching the lane.
-  await page.getByRole('radio', { name: 'Music, runs on LU Cloud' }).click()
-  await expect(page.getByRole('radio', { name: 'Image', exact: true })).toBeChecked()
+  // KEWI fork: Cloud is removed, so hosted-only lanes are not offered at all
+  // (upstream showed them as locked "runs on LU Cloud" teasers).
+  await expect(page.getByRole('radio', { name: /runs on LU Cloud/ })).toHaveCount(0)
 
   // Lanes that need a ComfyUI upload/node have no Mac path at all and are not
   // offered — a visible-but-broken button would be the worse outcome.
@@ -129,7 +122,7 @@ test('fresh mac: the Local Media panel installs the engine and a model', async (
   await seedOnboardingDone(page)
   await routeCloud(page, { license: 'active', access: true, mediaLive: true })
   await page.goto('/')
-  await expect(cloudSwitch(page)).toBeVisible({ timeout: 20_000 })
+  await expect(appReady(page)).toBeVisible({ timeout: 20_000 })
 
   await page.getByRole('button', { name: /^Settings$/ }).click()
   await page.getByRole('button', { name: /AI Backends/i }).click()
@@ -195,7 +188,7 @@ test('mac: the Model Manager offers MLX media instead of hiding the rails', asyn
   await seedOnboardingDone(page)
   await routeCloud(page, { license: 'active', access: true, mediaLive: true })
   await page.goto('/')
-  await expect(cloudSwitch(page)).toBeVisible({ timeout: 20_000 })
+  await expect(appReady(page)).toBeVisible({ timeout: 20_000 })
 
   await page.getByRole('button', { name: /^Models$/ }).first().click()
   await page.getByRole('button', { name: /^Image$/ }).first().click()
@@ -228,7 +221,7 @@ test('mac: saving the HuggingFace token in Settings pushes it to Rust', async ({
   await seedOnboardingDone(page)
   await routeCloud(page, { license: 'active', access: true, mediaLive: true })
   await page.goto('/')
-  await expect(cloudSwitch(page)).toBeVisible({ timeout: 20_000 })
+  await expect(appReady(page)).toBeVisible({ timeout: 20_000 })
 
   await page.getByRole('button', { name: /^Settings$/ }).click()
   await page.getByRole('button', { name: /AI Backends/i }).click()
@@ -264,7 +257,7 @@ test('mac: a stored token reaches Rust at boot, without opening Settings', async
   await seedOnboardingDone(page)
   await routeCloud(page, { license: 'active', access: true, mediaLive: true })
   await page.goto('/')
-  await expect(cloudSwitch(page)).toBeVisible({ timeout: 20_000 })
+  await expect(appReady(page)).toBeVisible({ timeout: 20_000 })
 
   await expect.poll(() => hfToken(page), { timeout: 15_000 }).toBe('hf_boot_probe')
 })

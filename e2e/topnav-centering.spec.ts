@@ -43,7 +43,7 @@ async function boot(page: Page) {
 
 async function gotoCompare(page: Page) {
   const wide = page.getByRole('button', { name: 'Compare', exact: true }).first()
-  if (await wide.isVisible().catch(() => false)) {
+  if (await wide.waitFor({ state: 'visible', timeout: 5_000 }).then(() => true, () => false)) {
     await wide.click()
     return
   }
@@ -193,9 +193,10 @@ for (const width of COLLISION_WIDTHS) {
 
     expect(rightContent.left, `right content starts at ${rightContent.left}, nav ends at ${navBox!.x + navBox!.width}`)
       .toBeGreaterThanOrEqual(navBox!.x + navBox!.width)
-    // The box itself and its painted content agree, nothing spills out of
-    // its own column either.
-    expect(rightContent.left).toBeCloseTo(rightBox!.x, 0)
+    // Nothing spills out of its own column either. (KEWI fork: without the
+    // Cloud switch the right-aligned content no longer fills the column, so
+    // it starts at or after the column edge rather than exactly on it.)
+    expect(rightContent.left).toBeGreaterThanOrEqual(rightBox!.x - 0.5)
   })
 }
 
@@ -211,13 +212,15 @@ test('at the lg breakpoint the centered bar does not overlap the side groups', a
   const bar = page.locator('nav[aria-label="Main"] > div.hidden.lg\\:flex')
   const barBox = await bar.boundingBox()
   const logo = await page.getByRole('button', { name: 'LU' }).boundingBox()
-  const cloudSwitch = await page.getByRole('switch', { name: /^Cloud$/i }).boundingBox()
-  expect(barBox && logo && cloudSwitch, 'bar, logo and cloud switch all present').toBeTruthy()
+  // KEWI fork: the Cloud switch is gone, the right group now starts at its
+  // first painted child.
+  const rightGroupStart = await page.locator('header > div.flex.items-center.justify-end').evaluate((el) =>
+    Math.min(...Array.from(el.children).map((k) => (k as HTMLElement).getBoundingClientRect().left)))
+  expect(barBox && logo, 'bar and logo present').toBeTruthy()
 
   const barLeft = barBox!.x
   const barRight = barBox!.x + barBox!.width
   const leftGroupEnd = logo!.x + logo!.width
-  const rightGroupStart = cloudSwitch!.x
 
   expect(barLeft, 'bar does not reach into the left group').toBeGreaterThan(leftGroupEnd)
   expect(barRight, 'bar does not reach into the right group').toBeLessThan(rightGroupStart)

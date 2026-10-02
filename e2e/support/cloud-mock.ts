@@ -364,6 +364,12 @@ export async function seedOnboardingDone(page: Page): Promise<void> {
   }, APP_VERSION)
 }
 
+/** KEWI fork: the Cloud switch is gone. Specs that only waited for the header
+ *  to be up wait for the main navigation instead. */
+export function appReady(page: Page) {
+  return page.locator('nav[aria-label="Main"]')
+}
+
 /** The purple Cloud light-switch in the header (right cluster). */
 export function cloudSwitch(page: Page) {
   return page.getByRole('switch', { name: /^Cloud$/i })

@@ -1,6 +1,6 @@
 import { test, expect } from '@playwright/test'
 import { tauriMockInit, DEFAULT_ASSISTANT_REPLY, DEFAULT_MODEL_NAME } from './support/tauri-mock'
-import { routeCloud, seedOnboardingDone, cloudSwitch } from './support/cloud-mock'
+import { routeCloud, seedOnboardingDone, appReady } from './support/cloud-mock'
 
 for (const ready of [false, true]) {
   test(`trainer failure remains readable with environment ready=${ready}`, async ({ page }) => {
@@ -26,7 +26,7 @@ for (const ready of [false, true]) {
     await seedOnboardingDone(page)
     await routeCloud(page, { license: 'active', access: true, mediaLive: true })
     await page.goto('/')
-    await expect(cloudSwitch(page)).toBeVisible()
+    await expect(appReady(page)).toBeVisible()
     await page.getByRole('button', { name: /^Create$/ }).click()
     await page.getByRole('radio', { name: 'Character Studio', exact: true }).click()
     await page.getByRole('button', { name: ready ? 'Reinstall trainer' : 'Set up trainer', exact: true }).click()
