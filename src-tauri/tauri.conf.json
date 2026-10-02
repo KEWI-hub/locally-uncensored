@@ -38,7 +38,7 @@
   },
   "bundle": {
     "active": true,
-    "targets": "all",
+    "targets": ["nsis", "deb", "rpm", "appimage"],
     "publisher": "PurpleDoubleD",
     "copyright": "Copyright (c) 2026 PurpleDoubleD. Licensed under AGPL-3.0.",
     "category": "DeveloperTool",
