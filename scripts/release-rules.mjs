@@ -11,10 +11,8 @@ export const MARKER = '<!-- lu-old-release-banner -->'
 export const BANNER =
   MARKER +
   '\n> **This is an old release.** Get the current version from the ' +
-  '[latest release](https://github.com/PurpleDoubleD/locally-uncensored/releases/latest), ' +
-  'or download the Windows installer straight from ' +
-  '[lu-labs.ai](https://lu-labs.ai/api/download/windows). ' +
-  'Older builds miss fixes and features, and some of them predate the Cloud.\n\n'
+  '[latest release](https://github.com/KEWI-hub/locally-uncensored/releases/latest). ' +
+  'Older builds miss fixes and features.\n\n'
 
 /** Strips a banner wherever it sits, so re-running never stacks them. */
 export function withoutBanner(body) {
