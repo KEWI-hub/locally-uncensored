@@ -67,7 +67,7 @@ describe('the notes table', () => {
     // backward-compatible behaviour, not a gap to close retroactively.
     const shipping = JSON.parse(
       readFileSync(resolve(dirname(fileURLToPath(import.meta.url)), '../../../package.json'), 'utf8'),
-    ).version as string
+    ).version.replace(/-kewi\.\d+$/, '') as string
     const note = releaseNoteFor(shipping)
     const allItems = [...(note?.lines ?? []), ...(note?.details ?? []).flatMap((s) => s.items)]
     expect(allItems.length, `${shipping}: no lines at all`).toBeGreaterThan(0)
@@ -94,7 +94,7 @@ describe('the notes table', () => {
     // package.json is now part of the suite.
     const shipping = JSON.parse(
       readFileSync(resolve(dirname(fileURLToPath(import.meta.url)), '../../../package.json'), 'utf8'),
-    ).version as string
+    ).version.replace(/-kewi\.\d+$/, '') as string
     expect(releaseNoteFor(shipping), `no release note for ${shipping}`).toBeDefined()
     // Ueber der laufenden Version darf ein ENTWURF stehen, und nur ein
     // Entwurf: alles davor muss eine hoehere Version sein. Damit bleibt die
@@ -342,7 +342,7 @@ describe('the notes table', () => {
     // incomplete.
     const shipping = JSON.parse(
       readFileSync(resolve(dirname(fileURLToPath(import.meta.url)), '../../../package.json'), 'utf8'),
-    ).version as string
+    ).version.replace(/-kewi\.\d+$/, '') as string
     expect(shipping).toBe('3.0.3')
     const prose = proseOf(shipping)
     for (const anchor of [
@@ -456,7 +456,7 @@ describe('the notes table', () => {
     // lines are a summary; the details are the detail.
     const shipping = JSON.parse(
       readFileSync(resolve(dirname(fileURLToPath(import.meta.url)), '../../../package.json'), 'utf8'),
-    ).version as string
+    ).version.replace(/-kewi\.\d+$/, '') as string
     const note = releaseNoteFor(shipping)
     // Long sentences only: a short one can legitimately repeat.
     const sentences = (text: string) =>

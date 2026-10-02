@@ -928,5 +928,8 @@ export const RELEASE_NOTES: ReleaseNote[] = [
 
 /** The note for a version, or undefined when nobody wrote one. */
 export function releaseNoteFor(version: string): ReleaseNote | undefined {
-  return RELEASE_NOTES.find((n) => n.version === version)
+  // KEWI fork builds are versioned `<upstream>-kewi.N`; they ship the
+  // upstream notes of the release they are based on.
+  const base = version.replace(/-kewi\.\d+$/, '')
+  return RELEASE_NOTES.find((n) => n.version === base)
 }
