@@ -239,11 +239,11 @@ describe('the wired-up sheet, end to end', () => {
     // carries an entry for it, so the sheet is open on mount.
     await waitFor(() => expect(screen.getByTestId('release-heading')).toBeTruthy())
     expect(screen.getByTestId('release-heading').textContent).toBe("What's new in 3.0.3")
-    expect(useReleaseNotesStore.getState().lastNotesVersion).not.toBe('3.0.3-kewi.2')
+    expect(useReleaseNotesStore.getState().lastNotesVersion).not.toBe('3.0.3-kewi.3')
 
     fireEvent.keyDown(document, { key: 'Escape' })
 
-    await waitFor(() => expect(useReleaseNotesStore.getState().lastNotesVersion).toBe('3.0.3-kewi.2'))
+    await waitFor(() => expect(useReleaseNotesStore.getState().lastNotesVersion).toBe('3.0.3-kewi.3'))
     await waitFor(() => expect(screen.queryByTestId('release-heading')).toBeNull())
   })
 })

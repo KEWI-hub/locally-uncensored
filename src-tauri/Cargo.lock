@@ -2543,7 +2543,7 @@ dependencies = [
 
 [[package]]
 name = "locally-uncensored"
-version = "3.0.3-kewi.2"
+version = "3.0.3-kewi.3"
 dependencies = [
  "axum",
  "base64 0.22.1",
