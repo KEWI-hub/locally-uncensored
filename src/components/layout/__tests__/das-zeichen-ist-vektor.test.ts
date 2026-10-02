@@ -65,10 +65,6 @@ describe('keine Komponente laedt das 512px-PNG mehr', () => {
       'chat/CodexView.tsx',
       'chat/ChatInput.tsx',
       'auth/AccountPanel.tsx',
-      'cloud/CloudSwitch.tsx',
-      // Nicht in der Neunerliste des Audits — dieser Test hat ihn beim
-      // Durchsuchen gefunden. Es waren zehn, nicht neun.
-      'cloud/CloudGateModal.tsx',
     ]
     for (const rel of erwartet) {
       const src = readFileSync(resolve(COMPONENTS, rel), 'utf-8')

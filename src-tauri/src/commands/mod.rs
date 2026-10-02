@@ -36,7 +36,6 @@ pub mod trainer;
 pub mod tts;
 pub mod video;
 pub mod waitlist;
-pub mod funnel;
 pub mod gallery_files;
 pub mod whisper;
 

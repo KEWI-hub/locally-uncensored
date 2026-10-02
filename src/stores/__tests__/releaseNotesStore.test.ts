@@ -13,7 +13,7 @@
 import { describe, it, expect, beforeEach } from 'vitest'
 import { useReleaseNotesStore, shouldShowReleaseNotes } from '../releaseNotesStore'
 import { RELEASE_NOTES, releaseNoteFor, itemDetail, SHEET_CATALOGUE_MODELS, SHEET_CHAT_MODELS, SHEET_MARKED_MODELS } from '../../lib/release-notes'
-import { CLOUD_PITCH, CLOUD_REFUSAL_LINE, CLOUD_SUBSCRIBER_LINE, cloudSalesLines } from '../../lib/cloud-pitch'
+import { CLOUD_PITCH } from '../../lib/cloud-pitch'
 import { readFileSync } from 'node:fs'
 import { fileURLToPath } from 'node:url'
 import { dirname, resolve } from 'node:path'
@@ -506,48 +506,6 @@ describe('the notes table', () => {
    * wie im Verkaufs-Panel am Schalter; zwei Fassungen derselben drei Zahlen
    * waeren genau der Fund, den dieser Waechter seit R2-11 fernhaelt.
    */
-  it('the sheet leads with the Cloud block, and it is read, never typed', () => {
-    const note = releaseNoteFor('3.0.0')
-    expect(note?.cloud, 'the 3.0.0 sheet carries no Cloud block').toBeDefined()
-    expect(note!.cloud!.lines, 'the block writes its own version of the three lines')
-      .toEqual(cloudSalesLines())
-    // Nachtrag a: der Messsatz steht im selben Block wie im CHANGELOG, aus
-    // derselben Konstante, damit die zwei Flaechen nicht auseinanderlaufen.
-    expect(note!.cloud!.measured, 'the sheet carries no measured refusal sentence')
-      .toBe(CLOUD_REFUSAL_LINE)
-    expect(note!.cloud!.note, 'the subscriber sentence is not the shared one')
-      .toBe(CLOUD_SUBSCRIBER_LINE)
-
-    const src = readFileSync(
-      resolve(dirname(fileURLToPath(import.meta.url)), '../../lib/release-notes.ts'), 'utf8',
-    )
-    expect(src).toContain('lines: cloudSalesLines()')
-    expect(src).toContain('note: CLOUD_SUBSCRIBER_LINE')
-
-    const modal = readFileSync(
-      resolve(dirname(fileURLToPath(import.meta.url)), '../../components/release/ReleaseNotesModal.tsx'),
-      'utf8',
-    )
-    expect(modal).toContain('release-cloud-block')
-    expect(modal, 'the block has no way into the cloud').toContain('Turn on Cloud')
-    // Vor allem anderen: der Block steht im Quelltext vor der restlichen
-    // Prosa des Blatts.
-    //
-    // Runde 2 (19.09.2026): "What is new" plus ein separates Versions-Label
-    // wichen "What's new in {version}" in der FESTEN Kopfzeile (Logo und
-    // Ueberschrift bleiben beim Scrollen sichtbar, wie Version und Logo es
-    // vorher schon taten) und stehen darum vor JEDEM Inhalt, auch vor dem
-    // Cloud-Block. Das ist kein Verstoss gegen "vor allem anderen": der
-    // Massstab war immer der INHALT, nicht das Chrome. Der Marker fuer den
-    // ersten echten Inhaltssatz ist jetzt `release-intro`, das Gegenstueck zur
-    // fruehen "What is new</h3>"-Ueberschrift im Koerper.
-    expect(modal.indexOf('release-cloud-block'))
-      .toBeLessThan(modal.indexOf('data-testid="release-intro"'))
-    // Der Knopf faellt auf denselben Weg zurueck wie der Schalter im Kopf.
-    expect(modal).toContain('setCloudGateOpen(true)')
-    expect(modal).toContain("updateSettings({ appMode: 'cloud' })")
-  })
-
   it('and the rest of the sheet is unchanged, to the character', () => {
     // Der Cloud-Block ist ein eigenes Feld und darf NICHT in die Prosa
     // gerutscht sein: sonst haette er die Anker oben verschoben, und die

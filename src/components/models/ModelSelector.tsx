@@ -1,7 +1,7 @@
 import { useState, useRef, useEffect, useLayoutEffect } from 'react'
 import { useDismissOnEscape } from '../../hooks/useDismissOnEscape'
 import { motion, AnimatePresence } from 'framer-motion'
-import { AlertTriangle, Ban, ChevronDown, Loader2, Power, PlayCircle, Settings as SettingsIcon, Wrench, X, Cloud } from 'lucide-react'
+import { AlertTriangle, Ban, ChevronDown, Loader2, Power, PlayCircle, Settings as SettingsIcon, Wrench, X } from 'lucide-react'
 import { useModels } from '../../hooks/useModels'
 import { useModelStore } from '../../stores/modelStore'
 import { useProviderStore } from '../../stores/providerStore'
@@ -21,7 +21,6 @@ import { detailOf } from '../../lib/error-text'
 import { lmStudioSlotUpdate, adoptionReplacesBuiltinEngine } from '../../lib/lmstudio-backend-adopt'
 import { nextProbeDelayMs } from '../../lib/probe-backoff'
 import { noChatBackendEnabled } from '../../lib/provider-visibility'
-import { cloudTeaserModels } from '../../lib/cloud-teaser-models'
 import { splitBackendSwitchRows, needsBackendSwitchHeading, foldedRowsSentence } from '../../lib/lu-engine-rows'
 import { isBuiltinEngineEntry, type InstalledModelLike } from '../../lib/lmstudio-match'
 import type { HandoverSlot } from '../../lib/openai-slot-handover'
@@ -44,92 +43,6 @@ import type { AIModel } from '../../types/models'
 import { MOTION_S } from '../ui/motion'
 import { ModelRowMarks } from './ModelRowMarks'
 import type { CloudModel as CloudModelMarks } from '../../types/models'
-
-// ── Local-mode cloud discovery (2.5.8): an "LU Cloud" section at the list's
-// tail. Signed-in accounts show their real hosted chat models (the appMode
-// filter hides them from the selectable list); logged-out shows one generic
-// row. Tapping any row opens the Cloud gate (login → plan → beta), chat rows
-// skip the teaser sheet, the gate IS the pitch here. Hidden in cloud mode
-// (models are the real list there) and when the discovery layer is off. ──
-function CloudTeaserSection({ onOpen }: { onOpen: () => void }) {
-  const appMode = useSettingsStore((s) => s.settings.appMode)
-  const teasersEnabled = useSettingsStore((s) => s.settings.cloudTeasersEnabled)
-  const setCloudGateOpen = useUIStore((s) => s.setCloudGateOpen)
-  const setPendingCloudModel = useUIStore((s) => s.setPendingCloudModel)
-  const allModels = useModelStore((s) => s.models)
-  if (appMode === 'cloud' || !teasersEnabled) return null
-  // The five used to be the head of the list as `/v1/models` happened to send
-  // it, and that order is not stable, so the strip showed a different five on
-  // every look (Nebenbefund 3, R9 re-measure). Same five every time now, and
-  // the ones that did not fit are counted instead of silently dropped.
-  const { shown: cloudChat, more: cloudMore } = cloudTeaserModels(
-    allModels.filter((m) => m.provider === 'lu-cloud' && m.type === 'text'),
-    (m) => (('displayName' in m && m.displayName) || displayModelName(m.name)) as string,
-  )
-  // Every row used to call this with nothing, so the row you pressed and the
-  // model you got afterwards were unrelated: the gate flipped the mode and the
-  // mode rule then handed out the head of the catalogue, in whatever order the
-  // last `/v1/models` answer had arrived in (Nebenbefund 1, R10 re-measure
-  // 2026-08-30, DeepSeek V3.2 landed on Kimi K3). A model row now names its
-  // model, by name and never by its position in any list, and the mode rule
-  // honours that name when the flip lands. The rows that stand for the
-  // catalogue as a whole, the rest-counter and the logged-out line, still ask
-  // for nothing in particular.
-  const open = (model?: string) => {
-    setPendingCloudModel(model ?? null)
-    onOpen()
-    setCloudGateOpen(true)
-  }
-  return (
-    <div className="mt-1 border-t border-white/[0.05]">
-      <div className="px-2.5 pt-2 pb-0.5 flex items-center gap-1">
-        <Cloud size={10} className="text-violet-500 dark:text-violet-200" />
-        <span className="text-[0.55rem] font-medium uppercase tracking-widest text-gray-600">
-          LU Cloud
-        </span>
-      </div>
-      {cloudChat.map((m) => (
-          <button
-            key={m.name}
-            onClick={() => open(m.name)}
-            className="w-full flex items-center gap-2 px-2.5 py-1.5 text-left hover:bg-white/[0.04] transition-colors"
-            title="Runs on LU Cloud, tap to see plans"
-          >
-            <Cloud size={10} className="text-violet-500 dark:text-violet-200 shrink-0" />
-            <span className="t-micro text-gray-400 truncate">
-              {('displayName' in m && m.displayName) || displayModelName(m.name)}
-            </span>
-            <span className="ml-auto text-[0.5rem] text-violet-500 dark:text-violet-200">Cloud</span>
-          </button>
-      ))}
-      {cloudChat.length > 0 && cloudMore > 0 && (
-        <button
-          onClick={() => open()}
-          className="w-full flex items-center gap-2 px-2.5 py-1.5 text-left hover:bg-white/[0.04] transition-colors"
-          title="See the whole hosted catalogue"
-        >
-          <span className="t-micro text-gray-500">
-            {cloudMore} more cloud {cloudMore === 1 ? 'model' : 'models'}, see them all
-          </span>
-        </button>
-      )}
-      {cloudChat.length === 0 && (
-        <button
-          onClick={() => open()}
-          className="w-full flex items-center gap-2 px-2.5 py-1.5 text-left hover:bg-white/[0.04] transition-colors"
-          title="Runs on LU Cloud, tap to see plans"
-        >
-          <Cloud size={10} className="text-violet-500 dark:text-violet-200 shrink-0" />
-          <span className="t-micro text-gray-400">
-            Frontier chat models, no GPU needed
-          </span>
-          <span className="ml-auto text-[0.5rem] text-violet-500 dark:text-violet-200">Cloud</span>
-        </button>
-      )}
-    </div>
-  )
-}
-
 // True when `prev` already holds exactly the names in `next`. Lets the 1.5 s
 // loaded-state poll bail out of a state update (return the SAME Set ref) when
 // nothing changed, so React skips the re-render instead of reconciling the whole
@@ -1759,7 +1672,6 @@ export function ModelSelector({ openUpward = false, surface = 'chat', answeredBy
                 </div>
               ))}
 
-              <CloudTeaserSection onOpen={() => setOpen(false)} />
             </div>
 
             {/* Sticky footer: Unload */}

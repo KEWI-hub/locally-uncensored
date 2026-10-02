@@ -43,11 +43,8 @@ import { announceChatModelReplaced } from '../../api/lu-engine-switch'
 import type { TextChunk } from '../../types/rag'
 import type { Role } from '../../types/chat'
 import { useKeyboardShortcuts } from '../../hooks/useKeyboardShortcuts'
-import { useCloudAuth } from '../../hooks/useCloudAuth'
 import { useCloudAuthStore, deriveCloudAvailable } from '../../stores/cloudAuthStore'
 import { useCreateStore } from '../../stores/createStore'
-import { CloudGateModal } from '../cloud/CloudGateModal'
-import { CloudTeaserModal } from '../cloud/CloudTeaserModal'
 import { ReleaseNotesModal } from '../release/ReleaseNotesModal'
 import { ShortcutsModal } from './ShortcutsModal'
 import { CommandPalette } from '../ui/CommandPalette'
@@ -148,9 +145,6 @@ export function AppShell() {
   const [showSelector, setShowSelector] = useState(false)
 
   useKeyboardShortcuts()
-  // LU Cloud account boot: keychain session restore + /api/me probe; keeps
-  // the cloud Create axis and the lu-cloud chat provider in sync.
-  useCloudAuth()
 
   // ── Global Local/Cloud mode (2.5.7) — appMode drives everything ──
   const appMode = settings.appMode
@@ -1152,11 +1146,6 @@ export function AppShell() {
         backends={detectedBackends}
         onClose={() => setShowSelector(false)}
       />
-      {/* Cloud gate: login → plan → beta wall, opened by the header switch. */}
-      <CloudGateModal />
-      {/* Cloud discovery sheet: opened by the Local-mode teaser surfaces
-          (locked Create tabs, hosted model rows). */}
-      <CloudTeaserModal />
       {/* What is new, once per version. Mounted inside the onboarded tree, so
           it can never stack on top of the onboarding wizard. */}
       <ReleaseNotesModal />

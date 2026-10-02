@@ -178,6 +178,9 @@ export const useSettingsStore = create<SettingsState>()(
       // install gets.
       onRehydrateStorage: () => (state) => {
         if (!state?.settings) return
+        // KEWI fork: Cloud is removed, the app is local-only.
+        state.settings.appMode = 'local'
+        state.settings.cloudTeasersEnabled = false
         if (!isEffortLevel(String(state.settings.reasoningEffort))) {
           state.settings.reasoningEffort = DEFAULT_SETTINGS.reasoningEffort
         }

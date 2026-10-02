@@ -30,7 +30,6 @@ import { render, screen, fireEvent, cleanup, waitFor } from '@testing-library/re
 
 vi.mock('../DownloadBadge', () => ({ DownloadBadge: () => null }))
 vi.mock('../UpdateBadge', () => ({ UpdateBadge: () => null }))
-vi.mock('../../cloud/CloudSwitch', () => ({ CloudSwitch: () => null }))
 vi.mock('../../../hooks/useModels', () => ({
   useModels: () => ({
     pullModel: vi.fn().mockResolvedValue(undefined),

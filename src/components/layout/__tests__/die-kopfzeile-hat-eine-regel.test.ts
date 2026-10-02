@@ -64,7 +64,7 @@ describe('D-S19: der Center-Slot traegt jetzt etwas, und rechts steht weniger', 
 
   it('rechts stehen nur Zustandsanzeigen und Schalter', () => {
     const komponenten = [...RIGHT.matchAll(/<([A-Z][A-Za-z]*)\s*\/>/g)].map((m) => m[1])
-    expect(komponenten).toEqual(['CloudSwitch', 'DownloadBadge', 'UpdateBadge'])
+    expect(komponenten).toEqual(['DownloadBadge', 'UpdateBadge'])
     // Der Theme-Knopf ist kein eigenes Bauteil und deshalb oben nicht dabei.
     expect(RIGHT).toContain('onClick={toggleTheme}')
   })

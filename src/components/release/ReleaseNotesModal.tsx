@@ -31,8 +31,6 @@ import { Modal } from '../ui/Modal'
 import { MONOGRAM, MONOGRAM_INVERT } from '../layout/brand'
 import { version as currentVersion } from '../../../package.json'
 import { useSettingsStore } from '../../stores/settingsStore'
-import { useUIStore } from '../../stores/uiStore'
-import { useCloudAuthStore, deriveCloudAvailable } from '../../stores/cloudAuthStore'
 import { useReleaseNotesStore, shouldShowReleaseNotes } from '../../stores/releaseNotesStore'
 import { releaseNoteFor, itemDetail, itemTitle, type ReleaseNote, type ReleaseNoteItem } from '../../lib/release-notes'
 
@@ -40,30 +38,11 @@ export function ReleaseNotesModal() {
   const lastNotesVersion = useReleaseNotesStore((s) => s.lastNotesVersion)
   const markNotesSeen = useReleaseNotesStore((s) => s.markNotesSeen)
   const onboardingDone = useSettingsStore((s) => s.settings.onboardingDone)
-  const updateSettings = useSettingsStore((s) => s.updateSettings)
-  const setCloudGateOpen = useUIStore((s) => s.setCloudGateOpen)
-  const cloudAvailable = useCloudAuthStore(deriveCloudAvailable)
 
   const open = shouldShowReleaseNotes(currentVersion, lastNotesVersion, onboardingDone)
   const note = releaseNoteFor(currentVersion)
   const close = () => markNotesSeen(currentVersion)
 
-  /**
-   * Der Knopf des Cloud-Blocks.
-   *
-   * Er tut genau das, was der Wolkenschalter im Kopf der App tut, und faellt
-   * darum auf dieselbe Unterscheidung zurueck: ein Konto, das die Wolke nutzen
-   * darf, wird umgeschaltet; jedes andere bekommt das Verkaufs-Panel. Kein
-   * zweiter Weg in die Wolke, nur ein zweiter Ausloeser.
-   *
-   * Das Blatt schliesst sich dabei, sonst laege es ueber dem, was es gerade
-   * geoeffnet hat. Es gilt danach als gelesen, denn der Kunde hat es gelesen.
-   */
-  const turnOnCloud = () => {
-    close()
-    if (cloudAvailable) updateSettings({ appMode: 'cloud' })
-    else setCloudGateOpen(true)
-  }
 
   if (!note) return null
 
@@ -76,7 +55,7 @@ export function ReleaseNotesModal() {
       maxWidth="max-w-[420px]"
       panelPad="p-0"
     >
-      <ReleaseNoteBody note={note} onClose={close} onTurnOnCloud={turnOnCloud} />
+      <ReleaseNoteBody note={note} onClose={close} />
     </Modal>
   )
 }
@@ -150,7 +129,7 @@ export function ReleaseNoteBody({ note, onClose, onTurnOnCloud }: ReleaseNoteBod
             gehoert an dessen Anfang statt zwischen die Fehlerbehebungen.
             Die drei Zeilen und der Satz kommen aus lib/cloud-pitch.ts,
             wortgleich mit dem Panel am Schalter. */}
-        {note.cloud && (
+        {onTurnOnCloud && note.cloud && (
           <div
             data-testid="release-cloud-block"
             className="rounded-lg border border-white/[0.08] bg-white/[0.03] p-3 space-y-2"

@@ -17,7 +17,7 @@ export const DEFAULT_SETTINGS: Settings = {
   // Global Local/Cloud switch (2.5.7) — local is and stays the default.
   appMode: 'local',
   // Cloud teasers in Local mode (2.5.8) — on by default, one-click off.
-  cloudTeasersEnabled: true,
+  cloudTeasersEnabled: false,
   // R5-2: Web gilt. Stand er auf true, kaperte eine global gewaehlte Person
   // jede neue Unterhaltung, und der Grundtext, der die Ablehnungen abstellt,
   // kam gar nicht erst zum Zug.

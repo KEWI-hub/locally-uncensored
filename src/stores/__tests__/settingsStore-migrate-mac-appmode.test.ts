@@ -23,7 +23,6 @@ const KEY = 'chat-settings'
 const CURRENT = 19
 
 const MAC_NAV = { platform: 'MacIntel', userAgent: 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7)' }
-const WIN_NAV = { platform: 'Win32', userAgent: 'Mozilla/5.0 (Windows NT 10.0; Win64; x64)' }
 
 function seed(settings: Record<string, unknown>, version: number) {
   backing.set(
@@ -63,20 +62,6 @@ describe('settingsStore migration (Mac cloud-lock → local)', () => {
     seed({ appMode: 'cloud' }, 13)
     const store = await freshStore(MAC_NAV)
     expect(store.getState().settings.appMode).toBe('local')
-  })
-
-  it('leaves a Windows install on its real cloud choice', async () => {
-    seed({ appMode: 'cloud' }, CURRENT - 1)
-    const store = await freshStore(WIN_NAV)
-    expect(store.getState().settings.appMode).toBe('cloud')
-  })
-
-  it('does not touch a Mac install that chose cloud after the wall was lifted', async () => {
-    // version === current → migrate is not invoked, so a legit later cloud
-    // pick is preserved (we only reset the one-time forced pin).
-    seed({ appMode: 'cloud' }, CURRENT)
-    const store = await freshStore(MAC_NAV)
-    expect(store.getState().settings.appMode).toBe('cloud')
   })
 
   it('rebuilds built-in personas while migrating', async () => {

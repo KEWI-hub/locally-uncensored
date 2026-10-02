@@ -121,7 +121,7 @@ describe('der Cloud-Akzent ist eine Rolle, keine zweite Marke', () => {
 
   it('und die Tokens werden wirklich aufgerufen', () => {
     expect((ALL.match(/(?<![\w-])(?:[a-z-]+:)*(?:bg|text|border|ring)-lu-cloud(?![\w-])/g) ?? []).length)
-      .toBeGreaterThanOrEqual(10)
+      .toBeGreaterThanOrEqual(5) // KEWI fork: Cloud UI removed, fewer call sites
     expect(ALL).toContain('dark:text-lu-cloud-lift')
   })
 

@@ -16,7 +16,6 @@ import { InlineToggle } from './InlineToggle'
 import { SpeechSettings } from './SpeechSettings'
 import { LogFileSettings } from './LogFileSettings'
 import { PersonaPanel } from '../personas/PersonaPanel'
-import { AccountPanel } from '../auth/AccountPanel'
 import { useVoiceStore } from '../../stores/voiceStore'
 import { downloadSuffix } from '../../lib/formatters'
 // Der Satz zum Startfehler kommt fuer beide Oberflaechen aus dieser Stelle
@@ -49,12 +48,11 @@ import { WorkflowList } from '../agents/WorkflowList'
 import { WorkflowBuilder } from '../agents/WorkflowBuilder'
 import { useUpdateStore, isNewerVersion } from '../../stores/updateStore'
 import { timeAgo } from '../../lib/time-ago'
-import { backendCall, isTauri, isMacOS, isWindows, openExternal } from '../../api/backend'
+import { backendCall, isTauri, isMacOS, isWindows } from '../../api/backend'
 import { comfyPathPlaceholder } from '../../lib/comfy-path-placeholder'
 import { troubleshootHinweis, type TroubleshootHinweis } from './troubleshoot-message'
 import { isMlxImageHost } from '../../api/mlx-image'
-import { ArrowUpCircle, KeyRound, RefreshCw } from 'lucide-react'
-import { CLOUD_BASE } from '../../api/cloud/config'
+import { ArrowUpCircle, RefreshCw } from 'lucide-react'
 import { formatBytes } from '../../lib/formatters'
 import { syncCustomModelDir, type CustomModelDirResult } from '../../lib/custom-model-dir'
 import { listBundledModels, lastCustomScanDir, lastScanDirs, type ScannedDir } from '../../api/engine'
@@ -67,7 +65,6 @@ import {
 import { CivitaiApiKeySetting } from './CivitaiApiKeySetting'
 import { HfTokenSetting } from './HfTokenSetting'
 import { HINWEIS_TEXT, PUNKT_FARBE } from '../../lib/hinweis'
-import { ContentPolicySettings } from './ContentPolicySettings'
 import { isLmStudioProvider } from '../../lib/hf-to-provider'
 
 // ── User profile picture (Appearance) ───────────────────────────
@@ -1844,55 +1841,6 @@ export function SettingsPage() {
 
         {/* ── General tab ──────────────────────────────── */}
         {tab === 'general' && (<>
-          <Section title="LU Cloud Account" defaultOpen>
-            <AccountPanel />
-            {/* Local-mode discovery layer (2.5.8): the locked Create tabs +
-                hosted-model rows. The teaser sheet's "Hide Cloud features"
-                link flips this off; this is the way back on. */}
-            <div className="flex items-center justify-between pt-1">
-              <div className="min-w-0 pr-3">
-                <span className="text-[0.7rem] text-gray-700 dark:text-gray-400">Show Cloud features in Local mode</span>
-                <p className="text-[0.6rem] text-gray-500 dark:text-gray-600 leading-snug">
-                  Cloud previews on Create tools and model lists, plus Try cloud tags on the tools that run both ways. Never blocks a local flow.
-                </p>
-              </div>
-              <button
-                onClick={() => updateSettings({ cloudTeasersEnabled: !settings.cloudTeasersEnabled })}
-                className={`relative w-8 h-[18px] rounded-full transition-colors shrink-0 ${
-                  settings.cloudTeasersEnabled ? 'bg-violet-500/70' : 'bg-gray-300 dark:bg-white/10'
-                }`}
-                role="switch"
-                aria-checked={settings.cloudTeasersEnabled}
-                aria-label="Show Cloud features in Local mode"
-              >
-                <span
-                  className={`absolute top-[2px] w-3.5 h-3.5 rounded-full bg-white shadow transition-all ${
-                    settings.cloudTeasersEnabled ? 'left-[16px]' : 'left-[2px]'
-                  }`}
-                />
-              </button>
-            </div>
-          </Section>
-          {/* Dieselbe Einstellung wie in der Webanwendung, ueber dieselbe
-              Route. Zwei Kopien waeren zwei Wahrheiten. */}
-          <Section title="Content policy">
-            <ContentPolicySettings />
-          </Section>
-          {/* Keys are minted and revoked on lu-labs.ai only; the desktop app
-              never sees the plaintext, so this section just points there. */}
-          <Section title="Cloud API Keys">
-            <p className="text-[0.6rem] text-gray-500 leading-relaxed">
-              Use the chat models of your plan from Aider, LibreChat or any OpenAI-compatible tool.
-              Base URL <code className="font-mono select-text text-gray-700 dark:text-gray-300">{CLOUD_BASE}/api/inference/v1</code>, your key as the API key.
-              A key spends plan tokens only; it can never read or change the account.
-            </p>
-            <button
-              onClick={() => void openExternal(`${CLOUD_BASE}/account`)}
-              className="flex items-center gap-1.5 px-3 py-1.5 rounded-md text-[0.65rem] font-medium bg-violet-500/15 text-violet-500 dark:text-violet-300 hover:bg-violet-500/25 transition-colors"
-            >
-              <KeyRound size={11} /> Generate API key on lu-labs.ai
-            </button>
-          </Section>
           <Section title="Appearance">
             {/* D-S30, zweite Haelfte des Befundes: „Dark" (ein ZUSTAND) und
                 „Upload" in AvatarSetting (eine AKTION) trugen beide

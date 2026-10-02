@@ -8,7 +8,6 @@ import { useModelStore } from '../../stores/modelStore'
 import { useProviderStore } from '../../stores/providerStore'
 import { UpdateBadge } from './UpdateBadge'
 import { DownloadBadge } from './DownloadBadge'
-import { CloudSwitch } from '../cloud/CloudSwitch'
 import { loadModel } from '../../api/ollama'
 import { getProviderIdFromModel } from '../../api/providers'
 import { ModelLoadError } from '../../lib/ollama-errors'
@@ -525,11 +524,6 @@ export function Header() {
           </div>
         )}
 
-        {/* Purple Cloud light-switch (David 2026-07-10): left of Downloads,
-            purple like the website. Gated: flipping ON without a usable
-            account opens the CloudGateModal; the first successful flip runs
-            the one-time cloud onboarding. */}
-        <CloudSwitch />
         <DownloadBadge />
 
         <button

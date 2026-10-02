@@ -99,6 +99,8 @@ export function IntentBar() {
     >
       {intents.map((meta) => {
         const locked = isIntentLocked(meta, backend, mlxHost)
+        // KEWI fork: Cloud is removed, a tool that only runs there is hidden.
+        if (locked) return null
         const selected = !locked && intent === meta.id
         const Icon = meta.icon
         return (

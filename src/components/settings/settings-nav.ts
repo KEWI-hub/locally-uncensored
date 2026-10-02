@@ -74,9 +74,6 @@ export function sectionsFor(tab: SettingsTab, flags: SettingsSectionFlags): stri
   switch (tab) {
     case 'general':
       return [
-        'LU Cloud Account',
-        'Content policy',
-        'Cloud API Keys',
         'Appearance',
         'Generation',
         ...(flags.gpuPicker ? ['Hardware (GPU picker)'] : []),

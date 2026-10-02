@@ -18,15 +18,9 @@
  * Run: npx vitest run src/lib/__tests__/cloud-teaser-stable.test.ts
  */
 import { describe, it, expect } from 'vitest'
-import { readFileSync } from 'node:fs'
-import { fileURLToPath } from 'node:url'
-import { dirname, resolve } from 'node:path'
 
 import { cloudTeaserModels, CLOUD_TEASER_LIMIT } from '../cloud-teaser-models'
 
-const here = dirname(fileURLToPath(import.meta.url))
-const repo = resolve(here, '../../..')
-const modelSelector = readFileSync(resolve(repo, 'src/components/models/ModelSelector.tsx'), 'utf8')
 
 const m = (displayName: string) => ({ name: `lu-cloud::${displayName}`, displayName })
 
@@ -93,22 +87,5 @@ describe('NEGATIVE CONTROL: what must not change', () => {
     const given = [...CATALOGUE]
     cloudTeaserModels(given)
     expect(labels(given)).toEqual(labels(CATALOGUE))
-  })
-})
-
-describe('the wiring, so the rule reaches the screen', () => {
-  it('the picker sorts through the rule instead of slicing the raw list', () => {
-    expect(modelSelector).toMatch(/const \{ shown: cloudChat, more: cloudMore \} = cloudTeaserModels\(/)
-    expect(modelSelector).not.toMatch(/m\.type === 'text'\)\.slice\(0, 5\)/)
-  })
-
-  it('it sorts by the label the user reads, not the raw id', () => {
-    expect(modelSelector).toMatch(
-      /cloudTeaserModels\([\s\S]{0,200}displayName\) \|\| displayModelName\(m\.name\)/,
-    )
-  })
-
-  it('and the rest is offered instead of hidden', () => {
-    expect(modelSelector).toMatch(/\{cloudMore\} more cloud \{cloudMore === 1 \? 'model' : 'models'\}, see them all/)
   })
 })
